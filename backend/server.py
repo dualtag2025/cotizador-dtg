@@ -395,22 +395,6 @@ async def search_data(query: str):
         status_code=404,
         detail="Datos no encontrados"
     )
-        logger.error(f"Sync error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error en sincronización: {str(e)}")
-
-@api_router.get("/search/{ciu}", response_model=CIUData)
-async def search_ciu(ciu: str):
-    """Search for CIU data (public endpoint)"""
-    # Search in cached data
-    data = await db.ciu_data.find_one({"ciu": ciu}, {"_id": 0})
-    
-    if not data:
-        raise HTTPException(
-            status_code=404,
-            detail="CIU no encontrado"
-        )
-    
-    return CIUData(**data)
 
 @api_router.get("/health")
 async def health_check():
