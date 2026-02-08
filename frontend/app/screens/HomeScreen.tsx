@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,10 +18,9 @@ import axios from 'axios';
 
 const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
-interface CIUData {
-  ciu: string;
-  grupo?: string;
-  subgrupo?: string;
+interface SearchResult {
+  tipo: string;
+  valor: string;
   debito_campal?: string;
   credito_campal?: string;
   debito_dinamica?: string;
@@ -30,34 +30,77 @@ interface CIUData {
 }
 
 const HomeScreen = () => {
-  const [ciu, setCiu] = useState('');
+  const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<CIUData | null>(null);
+  const [result, setResult] = useState<SearchResult | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-  const handleSearch = async () => {
-    if (!ciu.trim()) {
-      Alert.alert('Error', 'Por favor ingrese un CIU');
+  // Debounce para autocompletado
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchText.length >= 2) {
+        fetchSuggestions(searchText);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  const fetchSuggestions = async (query: string) => {
+    setLoadingSuggestions(true);
+    try {
+      const response = await axios.get(
+        `${EXPO_PUBLIC_BACKEND_URL}/api/autocomplete?q=${encodeURIComponent(query)}`
+      );
+      setSuggestions(response.data.suggestions || []);
+      setShowSuggestions(response.data.suggestions.length > 0);
+    } catch (error) {
+      console.error('Autocomplete error:', error);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const handleSearch = async (query?: string) => {
+    const searchQuery = query || searchText;
+    
+    if (!searchQuery.trim()) {
+      Alert.alert('Error', 'Por favor ingrese datos');
       return;
     }
 
+    setShowSuggestions(false);
     setLoading(true);
     setResult(null);
 
     try {
       const response = await axios.get(
-        `${EXPO_PUBLIC_BACKEND_URL}/api/search/${ciu.trim()}`
+        `${EXPO_PUBLIC_BACKEND_URL}/api/search/${encodeURIComponent(searchQuery.trim())}`
       );
       setResult(response.data);
     } catch (error: any) {
       if (error.response?.status === 404) {
-        Alert.alert('No encontrado', 'CIU no encontrado');
+        Alert.alert('No encontrado', 'Datos no encontrados');
       } else {
-        Alert.alert('Error', 'Error al buscar CIU. Por favor intente nuevamente.');
+        Alert.alert('Error', 'Error al buscar datos. Por favor intente nuevamente.');
       }
       console.error('Search error:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const selectSuggestion = (suggestion: string) => {
+    setSearchText(suggestion);
+    setShowSuggestions(false);
+    handleSearch(suggestion);
   };
 
   const renderRateCard = (title: string, debitoLabel: string, debitoValue?: string, creditoLabel: string, creditoValue?: string) => {
@@ -96,26 +139,60 @@ const HomeScreen = () => {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.searchContainer}>
-            <Text style={styles.title}>Buscar CIU</Text>
-            <Text style={styles.subtitle}>Ingrese el Código MCC para consultar las tasas</Text>
+            <Text style={styles.title}>Buscar Datos</Text>
+            <Text style={styles.subtitle}>Ingrese código CIIU o nombre del giro de negocio</Text>
 
-            <View style={styles.inputContainer}>
-              <Ionicons name="search" size={24} color="#666" style={styles.searchIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Ingrese CIU (Código MCC)"
-                value={ciu}
-                onChangeText={setCiu}
-                keyboardType="default"
-                autoCapitalize="none"
-                returnKeyType="search"
-                onSubmitEditing={handleSearch}
-              />
+            <View style={styles.inputWrapper}>
+              <View style={styles.inputContainer}>
+                <Ionicons name="search" size={24} color="#666" style={styles.searchIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ingrese Datos"
+                  value={searchText}
+                  onChangeText={(text) => {
+                    setSearchText(text);
+                    setResult(null);
+                  }}
+                  autoCapitalize="none"
+                  returnKeyType="search"
+                  onSubmitEditing={() => handleSearch()}
+                />
+                {searchText.length > 0 && (
+                  <TouchableOpacity onPress={() => {
+                    setSearchText('');
+                    setResult(null);
+                    setSuggestions([]);
+                    setShowSuggestions(false);
+                  }}>
+                    <Ionicons name="close-circle" size={20} color="#666" />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Sugerencias de autocompletado */}
+              {showSuggestions && suggestions.length > 0 && (
+                <View style={styles.suggestionsContainer}>
+                  <FlatList
+                    data={suggestions}
+                    keyExtractor={(item, index) => `${item}-${index}`}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.suggestionItem}
+                        onPress={() => selectSuggestion(item)}
+                      >
+                        <Ionicons name="business-outline" size={18} color="#666" style={{ marginRight: 8 }} />
+                        <Text style={styles.suggestionText} numberOfLines={2}>{item}</Text>
+                      </TouchableOpacity>
+                    )}
+                    scrollEnabled={false}
+                  />
+                </View>
+              )}
             </View>
 
             <TouchableOpacity
               style={styles.searchButton}
-              onPress={handleSearch}
+              onPress={() => handleSearch()}
               disabled={loading}
             >
               {loading ? (
@@ -133,11 +210,21 @@ const HomeScreen = () => {
             <View style={styles.resultsContainer}>
               <View style={styles.resultHeader}>
                 <Ionicons name="checkmark-circle" size={32} color="#4CAF50" />
-                <Text style={styles.resultHeaderText}>CIU: {result.ciu}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.resultHeaderText}>
+                    {result.tipo === 'codigo' ? 'Código CIIU' : 'Giro de Negocio'}
+                  </Text>
+                  <Text style={styles.resultValueText}>{result.valor}</Text>
+                  {result.tipo === 'codigo' && (
+                    <Text style={styles.resultNote}>
+                      * Tasas promocionales trimestrales
+                    </Text>
+                  )}
+                </View>
               </View>
 
-              {/* Tasa Campal */}
-              {renderRateCard(
+              {/* Tasa Campal - Solo para códigos */}
+              {result.tipo === 'codigo' && renderRateCard(
                 'Tasa Campal (Primeros 3 meses)',
                 'Débito',
                 result.debito_campal,
@@ -145,41 +232,22 @@ const HomeScreen = () => {
                 result.credito_campal
               )}
 
-              {/* Tasa Dinámica */}
-              {renderRateCard(
-                'Tasa Dinámica (Desde mes 4)',
+              {/* Tasa Dinámica - Solo para nombres */}
+              {result.tipo === 'nombre' && renderRateCard(
+                'Tasa Dinámica',
                 'Débito',
                 result.debito_dinamica,
                 'Crédito',
                 result.credito_dinamica
               )}
 
-              {/* Tasa Pizarra */}
-              {renderRateCard(
+              {/* Tasa Pizarra - Solo para nombres */}
+              {result.tipo === 'nombre' && renderRateCard(
                 'Tasa Pizarra',
                 'Débito',
                 result.debito_pizarra,
                 'Crédito',
                 result.credito_pizarra
-              )}
-
-              {/* Grupo y Subgrupo */}
-              {(result.grupo || result.subgrupo) && (
-                <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Información Adicional</Text>
-                  {result.grupo && (
-                    <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>Grupo:</Text>
-                      <Text style={styles.infoValue}>{result.grupo}</Text>
-                    </View>
-                  )}
-                  {result.subgrupo && (
-                    <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>Subgrupo:</Text>
-                      <Text style={styles.infoValue}>{result.subgrupo}</Text>
-                    </View>
-                  )}
-                </View>
               )}
             </View>
           )}
@@ -225,13 +293,15 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 20,
   },
+  inputWrapper: {
+    marginBottom: 16,
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
     paddingHorizontal: 12,
-    marginBottom: 16,
   },
   searchIcon: {
     marginRight: 8,
@@ -241,6 +311,31 @@ const styles = StyleSheet.create({
     height: 48,
     fontSize: 16,
     color: '#333',
+  },
+  suggestionsContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    maxHeight: 300,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  suggestionText: {
+    fontSize: 14,
+    color: '#333',
+    flex: 1,
   },
   searchButton: {
     backgroundColor: '#0066CC',
@@ -261,7 +356,7 @@ const styles = StyleSheet.create({
   },
   resultHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     backgroundColor: '#fff',
     padding: 16,
     borderRadius: 12,
@@ -273,9 +368,21 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   resultHeaderText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  resultValueText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
+    marginTop: 4,
+  },
+  resultNote: {
+    fontSize: 12,
+    color: '#FF9800',
+    fontStyle: 'italic',
+    marginTop: 4,
   },
   card: {
     backgroundColor: '#fff',
@@ -323,25 +430,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  infoLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-  },
-  infoValue: {
-    fontSize: 14,
-    color: '#333',
-    flex: 1,
-    textAlign: 'right',
   },
 });
 
