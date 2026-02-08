@@ -101,3 +101,178 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: |
+  Desarrollar aplicación Android "Cotizador DTG" para consultar tasas de comisión por CIU (Código MCC).
+  - Usuarios normales: Acceso sin login, búsqueda de CIU
+  - Admin (admin/206141): Panel para actualizar URLs de Google Sheets y sincronizar datos
+  - Datos desde 2 Google Sheets (Comisión especial 3m y Comisiones por Giro)
+  - Funcionamiento offline después de primera sincronización
+  - Colores: Débito (azul), Crédito (celeste)
+
+backend:
+  - task: "JWT Authentication for admin"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implemented JWT authentication with login endpoint. Tested with admin/206141 credentials. Token generation working correctly."
+
+  - task: "Google Sheets URL configuration endpoints"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "GET /api/config/sheets and PUT /api/config/sheets endpoints implemented. Default URLs configured in database on startup."
+
+  - task: "Google Sheets data synchronization"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "POST /api/sync endpoint implemented. Successfully synced 282 records from both Google Sheets. Converts Sheet URLs to CSV export format and parses data correctly."
+
+  - task: "CIU search endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "GET /api/search/{ciu} endpoint implemented. Tested with CIU 5411 and 7999. Returns all data from same row including grupo, subgrupo, and all rates. Handles not found cases correctly."
+
+  - task: "MongoDB models and database initialization"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Collections for admin_users, sheet_config, and ciu_data created. Startup event initializes admin user and default sheet URLs."
+
+frontend:
+  - task: "Tab navigation (Home and Admin)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented bottom tab navigation with Inicio and Admin tabs. Uses @react-navigation/bottom-tabs."
+
+  - task: "Home screen - CIU search"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/screens/HomeScreen.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Search input with CIU lookup functionality. Displays results in cards with correct color scheme (Débito: blue, Crédito: light blue). Shows data in order: Tasa Campal, Tasa Dinámica, Tasa Pizarra, Grupo, Subgrupo."
+
+  - task: "Admin login screen"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/screens/AdminScreen.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Login form with username and password. JWT token stored in AsyncStorage. Shows admin panel after successful login."
+
+  - task: "Admin panel - Update Google Sheets URLs"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/screens/AdminScreen.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Form to edit both Google Sheets URLs. Save button updates configuration via API."
+
+  - task: "Admin panel - Manual sync"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/screens/AdminScreen.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Sync button to trigger manual synchronization of Google Sheets data. Shows sync status and last sync timestamp."
+
+  - task: "Auth context and token management"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/context/AuthContext.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "React Context for authentication state. Manages JWT token in AsyncStorage. Provides login/logout functions."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "All backend endpoints"
+    - "JWT authentication flow"
+    - "Google Sheets synchronization"
+    - "CIU search functionality"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      Backend implementation complete and tested manually with curl:
+      - Authentication working (admin/206141)
+      - Sheet config endpoints working
+      - Sync endpoint successfully fetched 282 records from Google Sheets
+      - Search endpoint returns correct data for CIUs
+      
+      Frontend implementation complete but not yet tested:
+      - Bottom tab navigation with Home and Admin tabs
+      - Home screen with CIU search and results display
+      - Admin login and panel screens
+      - Auth context for token management
+      
+      Ready for comprehensive backend testing by testing agent.
