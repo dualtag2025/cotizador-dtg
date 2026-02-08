@@ -65,16 +65,18 @@ class SheetConfig(BaseModel):
     comisiones_por_giro_url: str
     last_sync: Optional[datetime] = None
 
-class CIUData(BaseModel):
-    ciu: str
-    grupo: Optional[str] = None
-    subgrupo: Optional[str] = None
+class SearchResult(BaseModel):
+    tipo: str  # 'codigo' or 'nombre'
+    valor: str  # The code or business name searched
     debito_campal: Optional[str] = None
     credito_campal: Optional[str] = None
     debito_dinamica: Optional[str] = None
     credito_dinamica: Optional[str] = None
     debito_pizarra: Optional[str] = None
     credito_pizarra: Optional[str] = None
+
+class AutocompleteResult(BaseModel):
+    suggestions: List[str]
 
 class SyncResponse(BaseModel):
     success: bool
