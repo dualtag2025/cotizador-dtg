@@ -274,17 +274,14 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 0
+  test_sequence: 1
   run_ui: false
 
 test_plan:
   current_focus:
-    - "All backend endpoints"
-    - "JWT authentication flow"
-    - "Google Sheets synchronization"
-    - "CIU search functionality"
+    - "Frontend testing"
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
