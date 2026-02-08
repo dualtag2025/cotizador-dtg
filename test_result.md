@@ -409,3 +409,68 @@ agent_communication:
       
       ALL BACKEND FUNCTIONALITY VERIFIED AND WORKING CORRECTLY.
       Ready for frontend testing or deployment.
+  - agent: "testing"
+    message: |
+      UPDATED BACKEND TESTING COMPLETE - NEW SEARCH FUNCTIONALITY VERIFIED
+      
+      Comprehensive testing of UPDATED Cotizador DTG backend completed with 100% success rate (8/8 tests passed):
+      
+      🔄 MAJOR CHANGES TESTED:
+      - Search now works by CODE or NAME (not CIU anymore)
+      - Two separate collections: codigo_data and nombre_data
+      - New autocomplete endpoint for business name suggestions
+      - Sync now processes 320 total records (38 códigos + 282 nombres)
+      
+      ✅ JWT Authentication (POST /api/auth/login):
+      - Still working with updated backend
+      - Valid credentials (admin/206141) return JWT token with 24hr expiration
+      - Invalid credentials properly rejected with 401
+      - Missing fields handled with 422
+      
+      ✅ Sheet Configuration (GET/PUT /api/config/sheets):
+      - GET endpoint returns current URLs (public access)
+      - PUT endpoint requires JWT authentication
+      - Configuration updates work correctly
+      - Default URLs properly configured
+      
+      ✅ Google Sheets Sync (POST /api/sync) - UPDATED:
+      - Successfully synced 320 records total (38 códigos + 282 nombres)
+      - Creates separate codigo_data and nombre_data collections
+      - Parses column G from row 14 for codes (Comisión especial 3m)
+      - Parses column E from row 7 for business names (Comisiones por Giro)
+      - Requires JWT authentication
+      
+      ✅ NEW: Autocomplete (GET /api/autocomplete?q={query}):
+      - Query "grifo" returns "Grifos y estaciones de servicio"
+      - Query "tienda" returns 20 suggestions with "tienda" in name
+      - 1 character queries return empty (as expected)
+      - Empty queries return empty (as expected)
+      
+      ✅ NEW: Search by Code (GET /api/search/{codigo}):
+      - Code "8510" returns tipo='codigo' with debito_campal=1.60%, credito_campal=1.95%
+      - Correctly sets dinamica/pizarra fields to null
+      - All required fields present in response
+      
+      ✅ NEW: Search by Name (GET /api/search/{nombre}):
+      - "Grifos y estaciones de servicio" returns tipo='nombre'
+      - Returns debito_dinamica=1,50%, credito_dinamica=1,50%
+      - Returns debito_pizarra=1,47%, credito_pizarra=1,47%
+      - Correctly sets campal fields to null
+      
+      ✅ Search Not Found:
+      - Non-existent codes return 404
+      - Non-existent names return 404
+      
+      ✅ Health Check (GET /api/health):
+      - Returns healthy status with timestamp
+      
+      VERIFIED DATA STRUCTURE:
+      - codigo_data collection: 38 records with campal rates only
+      - nombre_data collection: 282 records with dinamica/pizarra rates only
+      - Both collections working correctly with proper data segregation
+      
+      MINOR ISSUES (not affecting functionality):
+      - JWT key length warning (29 bytes, recommends 32+ bytes)
+      
+      🎉 ALL NEW BACKEND FUNCTIONALITY WORKING PERFECTLY.
+      Updated search system fully operational. Ready for frontend integration or deployment.
