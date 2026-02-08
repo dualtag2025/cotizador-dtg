@@ -307,27 +307,17 @@ async def sync_sheets(token_data: dict = Depends(verify_token)):
         df2 = fetch_sheet_data(config['comisiones_por_giro_url'])
         records2 = parse_comisiones_por_giro(df2)
         
-        # Create a dictionary to merge data by CIU
-        ciu_data = {}
-        
-        # Add data from first sheet
-        for record in records1:
-            ciu_data[record['ciu']] = record
-        
-        # Merge data from second sheet
-        for record in records2:
-            ciu = record['ciu']
-            if ciu in ciu_data:
-                ciu_data[ciu].update(record)
-            else:
-                ciu_data[ciu] = record
-        
         # Clear existing data
-        await db.ciu_data.delete_many({})
+        await db.codigo_data.delete_many({})
+        await db.nombre_data.delete_many({})
         
-        # Insert new data
-        if ciu_data:
-            await db.ciu_data.insert_many(list(ciu_data.values()))
+        # Insert code-based records (from first sheet)
+        if records1:
+            await db.codigo_data.insert_many(records1)
+        
+        # Insert name-based records (from second sheet)
+        if records2:
+            await db.nombre_data.insert_many(records2)
         
         # Update last sync time
         sync_time = datetime.utcnow()
@@ -336,18 +326,75 @@ async def sync_sheets(token_data: dict = Depends(verify_token)):
             {"$set": {"last_sync": sync_time}}
         )
         
-        logger.info(f"Sync completed: {len(ciu_data)} records")
+        total_records = len(records1) + len(records2)
+        logger.info(f"Sync completed: {len(records1)} códigos, {len(records2)} nombres = {total_records} total")
         
         return SyncResponse(
             success=True,
             message="Sincronización completada exitosamente",
-            records_synced=len(ciu_data),
+            records_synced=total_records,
             last_sync=sync_time
         )
     
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        logger.error(f"Sync error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error en sincronización: {str(e)}")
+
+@api_router.get("/autocomplete", response_model=AutocompleteResult)
+async def autocomplete_search(q: str):
+    """Get autocomplete suggestions for business names"""
+    if not q or len(q) < 2:
+        return AutocompleteResult(suggestions=[])
+    
+    # Search in nombre_data collection using regex for partial match
+    query = {"nombre_giro": {"$regex": q, "$options": "i"}}
+    results = await db.nombre_data.find(query, {"nombre_giro": 1, "_id": 0}).limit(20).to_list(20)
+    
+    suggestions = [r['nombre_giro'] for r in results]
+    return AutocompleteResult(suggestions=suggestions)
+
+@api_router.get("/search/{query}", response_model=SearchResult)
+async def search_data(query: str):
+    """Search for data by code or business name"""
+    query = query.strip()
+    
+    # Try searching in codigo_data first (by code)
+    codigo_result = await db.codigo_data.find_one({"codigo": query}, {"_id": 0})
+    
+    if codigo_result:
+        return SearchResult(
+            tipo='codigo',
+            valor=codigo_result['codigo'],
+            debito_campal=codigo_result.get('debito_campal'),
+            credito_campal=codigo_result.get('credito_campal'),
+            debito_dinamica=None,
+            credito_dinamica=None,
+            debito_pizarra=None,
+            credito_pizarra=None
+        )
+    
+    # If not found by code, search by business name
+    nombre_result = await db.nombre_data.find_one({"nombre_giro": query}, {"_id": 0})
+    
+    if nombre_result:
+        return SearchResult(
+            tipo='nombre',
+            valor=nombre_result['nombre_giro'],
+            debito_campal=None,
+            credito_campal=None,
+            debito_dinamica=nombre_result.get('debito_dinamica'),
+            credito_dinamica=nombre_result.get('credito_dinamica'),
+            debito_pizarra=nombre_result.get('debito_pizarra'),
+            credito_pizarra=nombre_result.get('credito_pizarra')
+        )
+    
+    # Not found in either collection
+    raise HTTPException(
+        status_code=404,
+        detail="Datos no encontrados"
+    )
         logger.error(f"Sync error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error en sincronización: {str(e)}")
 
