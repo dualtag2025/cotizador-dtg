@@ -150,24 +150,23 @@ def fetch_sheet_data(sheet_url: str) -> pd.DataFrame:
         raise ValueError(f"Error al obtener datos del sheet: {str(e)}")
 
 def parse_comision_especial(df: pd.DataFrame) -> List[Dict[str, Any]]:
-    """Parse Comisión especial 3m sheet (columns D,E,F,I,J from row 14)"""
+    """Parse Comisión especial 3m sheet (column G from row 14 onwards for CIU codes)"""
     try:
         # Row 14 is index 13 (0-based)
         df = df.iloc[13:].reset_index(drop=True)
         
-        # Get column names or use positional indices
-        # Assuming columns: D=3, E=4, F=5, I=8, J=9 (0-based)
+        # Column G = index 6 for CIU codes
         records = []
         
         for _, row in df.iterrows():
-            # Skip empty rows
-            if pd.isna(row.iloc[3]) or str(row.iloc[3]).strip() == '':
+            # Skip empty rows (check column G for CIU code)
+            if pd.isna(row.iloc[6]) or str(row.iloc[6]).strip() == '':
                 continue
-                
+            
+            # Get all relevant columns
             record = {
-                'ciu': str(row.iloc[3]).strip(),  # Column D
-                'grupo': str(row.iloc[4]).strip() if not pd.isna(row.iloc[4]) else None,  # Column E
-                'subgrupo': str(row.iloc[5]).strip() if not pd.isna(row.iloc[5]) else None,  # Column F
+                'codigo': str(row.iloc[6]).strip(),  # Column G - CIU code
+                'tipo': 'codigo',  # Mark as code-based search
                 'debito_campal': str(row.iloc[8]).strip() if not pd.isna(row.iloc[8]) else None,  # Column I
                 'credito_campal': str(row.iloc[9]).strip() if not pd.isna(row.iloc[9]) else None,  # Column J
             }
