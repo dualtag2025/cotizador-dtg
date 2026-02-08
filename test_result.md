@@ -287,19 +287,31 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
-      Backend implementation complete and tested manually with curl:
-      - Authentication working (admin/206141)
-      - Sheet config endpoints working
-      - Sync endpoint successfully fetched 282 records from Google Sheets
-      - Search endpoint returns correct data for CIUs
+      MAJOR UPDATE - Changed search functionality per user requirements:
       
-      Frontend implementation complete but not yet tested:
-      - Bottom tab navigation with Home and Admin tabs
-      - Home screen with CIU search and results display
-      - Admin login and panel screens
-      - Auth context for token management
+      Backend changes:
+      - Changed column G (not D) for codes in "Comisión especial 3m" starting row 14
+      - Changed column E for business names in "Comisiones por Giro" starting row 7
+      - Separated data into two collections: codigo_data and nombre_data
+      - Added autocomplete endpoint for business name suggestions
+      - Search now works by CODE or NAME (not CIU anymore)
+      - Codes show only Tasa Campal (promotional)
+      - Names show Tasa Dinámica and Tasa Pizarra
       
-      Ready for comprehensive backend testing by testing agent.
+      Tested manually:
+      - Sync: 38 códigos + 282 nombres = 320 total records
+      - Search by code 8510: Returns Tasa Campal data
+      - Search by name "Grifos y estaciones de servicio": Returns Tasa Dinámica/Pizarra
+      - Autocomplete "tienda": Returns 20 suggestions with "Tienda" in name
+      
+      Frontend changes:
+      - Changed "Buscar CIU" to "Buscar Datos"
+      - Changed "Ingrese CIU" to "Ingrese Datos"
+      - Added autocomplete dropdown with business name suggestions
+      - Shows different data based on search type (code vs name)
+      - Added note for promotional rates on code searches
+      
+      Ready for comprehensive backend testing with NEW endpoints.
   - agent: "testing"
     message: |
       BACKEND TESTING COMPLETE - ALL ENDPOINTS WORKING CORRECTLY
