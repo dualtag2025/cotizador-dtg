@@ -178,21 +178,23 @@ def parse_comision_especial(df: pd.DataFrame) -> List[Dict[str, Any]]:
         raise ValueError(f"Error al parsear datos: {str(e)}")
 
 def parse_comisiones_por_giro(df: pd.DataFrame) -> List[Dict[str, Any]]:
-    """Parse Comisiones por Giro sheet (columns C,F,G,H,I from row 7)"""
+    """Parse Comisiones por Giro sheet (column E from row 7 onwards for business names)"""
     try:
         # Row 7 is index 6 (0-based)
         df = df.iloc[6:].reset_index(drop=True)
         
-        # Columns: C=2, F=5, G=6, H=7, I=8 (0-based)
+        # Column E = index 4 for business names
+        # Columns F,G,H,I = indices 5,6,7,8 for rates
         records = []
         
         for _, row in df.iterrows():
-            # Skip empty rows
-            if pd.isna(row.iloc[2]) or str(row.iloc[2]).strip() == '':
+            # Skip empty rows (check column E for business name)
+            if pd.isna(row.iloc[4]) or str(row.iloc[4]).strip() == '':
                 continue
                 
             record = {
-                'ciu': str(row.iloc[2]).strip(),  # Column C
+                'nombre_giro': str(row.iloc[4]).strip(),  # Column E - Business name
+                'tipo': 'nombre',  # Mark as name-based search
                 'debito_dinamica': str(row.iloc[5]).strip() if not pd.isna(row.iloc[5]) else None,  # Column F
                 'credito_dinamica': str(row.iloc[6]).strip() if not pd.isna(row.iloc[6]) else None,  # Column G
                 'debito_pizarra': str(row.iloc[7]).strip() if not pd.isna(row.iloc[7]) else None,  # Column H
