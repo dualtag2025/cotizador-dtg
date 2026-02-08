@@ -125,6 +125,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "COMPREHENSIVE TEST PASSED: POST /api/auth/login working correctly. Valid credentials (admin/206141) return JWT token with 24hr expiration. Invalid credentials properly rejected with 401. Missing fields handled with 422. Authentication required for protected endpoints (PUT /config/sheets, POST /sync) returns 403 when no token provided."
+      - working: true
+        agent: "testing"
+        comment: "UPDATED FUNCTIONALITY TESTED: Authentication still working perfectly with new backend implementation. Valid credentials return JWT token. Invalid credentials rejected with 401. Missing fields handled with 422."
 
   - task: "Google Sheets URL configuration endpoints"
     implemented: true
@@ -140,8 +143,11 @@ backend:
       - working: true
         agent: "testing"
         comment: "COMPREHENSIVE TEST PASSED: GET /api/config/sheets returns current configuration with comision_especial_url and comisiones_por_giro_url. PUT /api/config/sheets correctly requires JWT authentication and updates both URLs. Default URLs properly set on startup."
+      - working: true
+        agent: "testing"
+        comment: "UPDATED FUNCTIONALITY TESTED: Configuration endpoints working with new backend. GET returns current URLs (public). PUT requires JWT auth and updates URLs correctly."
 
-  - task: "Google Sheets data synchronization"
+  - task: "Google Sheets data synchronization with dual collections"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -151,12 +157,12 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "POST /api/sync endpoint implemented. Successfully synced 282 records from both Google Sheets. Converts Sheet URLs to CSV export format and parses data correctly."
+        comment: "POST /api/sync endpoint updated for new data structure. Now creates separate codigo_data and nombre_data collections. Syncs 38 códigos + 282 nombres = 320 total records."
       - working: true
         agent: "testing"
-        comment: "COMPREHENSIVE TEST PASSED: POST /api/sync successfully fetches and parses data from both Google Sheets. Synced 282 records from Comisión especial 3m and Comisiones por Giro. Merges data by CIU correctly. Requires JWT authentication. Returns proper response with success status, records count, and sync timestamp."
+        comment: "UPDATED FUNCTIONALITY TESTED: POST /api/sync working perfectly with new dual-collection structure. Successfully synced 320 records total (38 códigos from Comisión especial 3m + 282 nombres from Comisiones por Giro). Requires JWT auth. Returns proper response with success status, count, and timestamp."
 
-  - task: "CIU search endpoint"
+  - task: "Search by CODE functionality"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -166,12 +172,12 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "GET /api/search/{ciu} endpoint implemented. Tested with CIU 5411 and 7999. Returns all data from same row including grupo, subgrupo, and all rates. Handles not found cases correctly."
+        comment: "NEW FUNCTIONALITY: GET /api/search/{codigo} endpoint for code-based search. Returns tipo='codigo' with debito_campal and credito_campal data only."
       - working: true
         agent: "testing"
-        comment: "COMPREHENSIVE TEST PASSED: GET /api/search/{ciu} working correctly. CIU 5411 returns complete data (Grupo: Supermercados, all rate fields populated). CIU 7999 returns partial data (only dynamic and pizarra rates). Non-existent CIUs (9999999) properly return 404. All required fields present: ciu, grupo, subgrupo, debito_campal, credito_campal, debito_dinamica, credito_dinamica, debito_pizarra, credito_pizarra."
+        comment: "NEW FUNCTIONALITY TESTED: Search by code (8510) working correctly. Returns tipo='codigo', valor='8510', with debito_campal='1.60%' and credito_campal='1.95%'. Correctly sets dinamica/pizarra fields to null."
 
-  - task: "MongoDB models and database initialization"
+  - task: "Search by NAME functionality"  
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -181,10 +187,52 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Collections for admin_users, sheet_config, and ciu_data created. Startup event initializes admin user and default sheet URLs."
+        comment: "NEW FUNCTIONALITY: GET /api/search/{nombre} endpoint for business name search. Returns tipo='nombre' with debito_dinamica, credito_dinamica, debito_pizarra, credito_pizarra data only."
       - working: true
         agent: "testing"
-        comment: "COMPREHENSIVE TEST PASSED: Database initialization working correctly. Admin user (admin/206141) created on startup. Default sheet configuration properly set. All collections (admin_users, sheet_config, ciu_data) functioning correctly. Database persists 282 CIU records after sync."
+        comment: "NEW FUNCTIONALITY TESTED: Search by name 'Grifos y estaciones de servicio' working correctly. Returns tipo='nombre' with dinamica rates (1,50%) and pizarra rates (1,47%). Correctly sets campal fields to null."
+
+  - task: "Autocomplete endpoint for business names"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "NEW FUNCTIONALITY: GET /api/autocomplete?q={query} endpoint for business name suggestions. Returns up to 20 matching suggestions with partial text matching."
+      - working: true
+        agent: "testing"
+        comment: "NEW FUNCTIONALITY TESTED: Autocomplete working perfectly. Query 'grifo' returns 'Grifos y estaciones de servicio'. Query 'tienda' returns 20 suggestions. Empty/short queries properly return empty results."
+
+  - task: "Search not found handling"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "UPDATED FUNCTIONALITY TESTED: Non-existent codes and names properly return 404 with appropriate error messages."
+
+  - task: "MongoDB models and database initialization with dual collections"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Updated database schema for separate codigo_data and nombre_data collections. Admin users and sheet_config collections remain unchanged."
+      - working: true
+        agent: "testing"
+        comment: "UPDATED DATABASE STRUCTURE TESTED: New collections (codigo_data, nombre_data) working correctly. Admin user initialization working. Default sheet config properly set. Data persistence verified with 320 total records across both collections."
 
   - task: "Health check endpoint"
     implemented: true
@@ -197,6 +245,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "COMPREHENSIVE TEST PASSED: GET /api/health returns proper status with healthy response and timestamp."
+      - working: true
+        agent: "testing"
+        comment: "UPDATED FUNCTIONALITY TESTED: Health check still working correctly with new backend implementation."
 
 frontend:
   - task: "Tab navigation (Home and Admin)"
