@@ -1,30 +1,62 @@
-import { Text, View, StyleSheet, Image } from "react-native";
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+import { AuthProvider } from './context/AuthContext';
+import HomeScreen from './screens/HomeScreen';
+import AdminScreen from './screens/AdminScreen';
 
-const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+const Tab = createBottomTabNavigator();
 
 export default function Index() {
-  console.log(EXPO_PUBLIC_BACKEND_URL, "EXPO_PUBLIC_BACKEND_URL");
-
   return (
-    <View style={styles.container}>
-      <Image
-        source={require("../assets/images/app-image.png")}
-        style={styles.image}
-      />
-    </View>
+    <AuthProvider>
+      <NavigationContainer independent={true}>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            tabBarIcon: ({ focused, color, size }) => {
+              let iconName: keyof typeof Ionicons.glyphMap;
+
+              if (route.name === 'Inicio') {
+                iconName = focused ? 'search' : 'search-outline';
+              } else if (route.name === 'Admin') {
+                iconName = focused ? 'settings' : 'settings-outline';
+              } else {
+                iconName = 'help-outline';
+              }
+
+              return <Ionicons name={iconName} size={size} color={color} />;
+            },
+            tabBarActiveTintColor: '#0066CC',
+            tabBarInactiveTintColor: 'gray',
+            headerStyle: {
+              backgroundColor: '#0066CC',
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          })}
+        >
+          <Tab.Screen 
+            name="Inicio" 
+            component={HomeScreen}
+            options={{ title: 'Cotizador DTG' }}
+          />
+          <Tab.Screen 
+            name="Admin" 
+            component={AdminScreen}
+            options={{ title: 'Administración' }}
+          />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </AuthProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0c0c0c",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
   },
 });
