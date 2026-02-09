@@ -225,13 +225,13 @@ const HomeScreen = () => {
                 </View>
               </View>
 
-              {/* Tasa Campal - Solo para códigos */}
+              {/* Tasa Campaña - Solo para códigos */}
               {result.tipo === 'codigo' && renderRateCard(
-                'Tasa Campal (Primeros 3 meses)',
+                'Tasa Campaña (Primeros 3 meses)',
                 'Débito',
-                result.debito_campal,
+                result.debito_campana,
                 'Crédito',
-                result.credito_campal
+                result.credito_campana
               )}
 
               {/* Tasa Dinámica - Solo para nombres */}
@@ -250,6 +250,25 @@ const HomeScreen = () => {
                 result.debito_pizarra,
                 'Crédito',
                 result.credito_pizarra
+              )}
+
+              {/* Grupo y Subgrupo */}
+              {(result.grupo || result.subgrupo) && (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Información Adicional</Text>
+                  {result.grupo && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>Grupo:</Text>
+                      <Text style={styles.infoValue}>{result.grupo}</Text>
+                    </View>
+                  )}
+                  {result.subgrupo && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>Subgrupo:</Text>
+                      <Text style={styles.infoValue}>{result.subgrupo}</Text>
+                    </View>
+                  )}
+                </View>
               )}
             </View>
           )}
