@@ -31,10 +31,10 @@
 
 ## PASO 2: SUBIR ARCHIVOS
 
-Sube estos archivos a la carpeta `cotizador-api` que creaste:
+Sube estos archivos a la carpeta `api-cotizador-dtg` que creaste:
 
 ```
-cotizador-api/
+api-cotizador-dtg/
 ├── server.py              (el backend principal)
 ├── passenger_wsgi.py      (archivo de inicio para cPanel)
 ├── requirements_cpanel.txt (dependencias)
