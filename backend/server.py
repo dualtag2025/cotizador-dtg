@@ -146,8 +146,8 @@ def fetch_sheet_data(sheet_url: str) -> pd.DataFrame:
         response = requests.get(export_url, timeout=30)
         response.raise_for_status()
         
-        # Parse CSV
-        df = pd.read_csv(io.StringIO(response.text))
+        # Parse CSV with UTF-8 encoding for Spanish characters
+        df = pd.read_csv(io.StringIO(response.text), encoding='utf-8')
         return df
     except Exception as e:
         logger.error(f"Error fetching sheet data: {str(e)}")
