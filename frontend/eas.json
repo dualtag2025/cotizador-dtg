@@ -17,7 +17,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_BACKEND_URL": "https://cotizador-dtg.onrender.com"
+        "EXPO_PUBLIC_BACKEND_URL": "https://cotizador-dtg.onrender.com",
+        "EXPO_NO_DOCTOR": "1"
       }
     },
     "production": {
