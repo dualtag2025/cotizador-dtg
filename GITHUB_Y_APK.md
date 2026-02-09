@@ -150,7 +150,7 @@ R: No, solo necesitas la carpeta `/frontend`
 
 **P: ¿El APK funcionará sin el backend?**
 R: No, necesitas que el backend esté corriendo en:
-   `https://mcc-query-tool.preview.emergentagent.com`
+   `https://tasa-lookup.preview.emergentagent.com`
 
 **P: ¿Cuánto pesa el APK?**
 R: Aproximadamente 50-70 MB

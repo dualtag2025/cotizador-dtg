@@ -6,7 +6,7 @@ Additional tests to verify sync functionality with real sheet URLs
 import requests
 import json
 
-BASE_URL = "https://mcc-query-tool.preview.emergentagent.com/api"
+BASE_URL = "https://tasa-lookup.preview.emergentagent.com/api"
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "206141"
 

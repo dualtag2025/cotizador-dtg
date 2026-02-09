@@ -119,7 +119,7 @@ Ahora puedes compartir este archivo `.apk` por:
 **Nombre de la app:** Cotizador DTG
 **Package:** com.dtg.cotizador  
 **Version:** 1.0.0
-**Backend URL:** https://mcc-query-tool.preview.emergentagent.com
+**Backend URL:** https://tasa-lookup.preview.emergentagent.com
 
 **Funcionalidades incluidas:**
 ✅ Búsqueda por código CIIU

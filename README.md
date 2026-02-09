@@ -105,7 +105,7 @@ La app sincroniza datos de dos Google Sheets:
 
 ## 🌐 Backend URL
 
-Producción: `https://mcc-query-tool.preview.emergentagent.com`
+Producción: `https://tasa-lookup.preview.emergentagent.com`
 
 ## 📝 Licencia
 

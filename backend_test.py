@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from frontend .env
-BASE_URL = "https://mcc-query-tool.preview.emergentagent.com/api"
+BASE_URL = "https://tasa-lookup.preview.emergentagent.com/api"
 
 class Colors:
     GREEN = '\033[92m'

@@ -38,7 +38,7 @@
 ✅ PROYECTO CONFIGURADO:
    - Nombre: Cotizador DTG
    - Package: com.dtg.cotizador
-   - Backend: https://mcc-query-tool.preview.emergentagent.com
+   - Backend: https://tasa-lookup.preview.emergentagent.com
    - Versión: 1.0.0
 
 ═══════════════════════════════════════════════════════════
