@@ -318,19 +318,30 @@ async def sync_sheets(token_data: dict = Depends(verify_token)):
         
         logger.info("Fetching Comisiones por Giro...")
         df2 = fetch_sheet_data(config['comisiones_por_giro_url'])
-        records2 = parse_comisiones_por_giro(df2)
+        records_by_name, records_by_code = parse_comisiones_por_giro(df2)
+        
+        # Enrich Sheet 1 records with Tasa Dinámica from Sheet 2 (match by code)
+        for record in records1:
+            codigo = record['codigo']
+            if codigo in records_by_code:
+                # Add Tasa Dinámica from Sheet 2
+                record['debito_dinamica'] = records_by_code[codigo]['debito_dinamica']
+                record['credito_dinamica'] = records_by_code[codigo]['credito_dinamica']
+            else:
+                record['debito_dinamica'] = None
+                record['credito_dinamica'] = None
         
         # Clear existing data
         await db.codigo_data.delete_many({})
         await db.nombre_data.delete_many({})
         
-        # Insert code-based records (from first sheet)
+        # Insert code-based records (from Sheet 1 enriched with Sheet 2)
         if records1:
             await db.codigo_data.insert_many(records1)
         
-        # Insert name-based records (from second sheet)
-        if records2:
-            await db.nombre_data.insert_many(records2)
+        # Insert name-based records (from Sheet 2)
+        if records_by_name:
+            await db.nombre_data.insert_many(records_by_name)
         
         # Update last sync time
         sync_time = datetime.utcnow()
@@ -339,8 +350,8 @@ async def sync_sheets(token_data: dict = Depends(verify_token)):
             {"$set": {"last_sync": sync_time}}
         )
         
-        total_records = len(records1) + len(records2)
-        logger.info(f"Sync completed: {len(records1)} códigos, {len(records2)} nombres = {total_records} total")
+        total_records = len(records1) + len(records_by_name)
+        logger.info(f"Sync completed: {len(records1)} códigos (with dynamic rates), {len(records_by_name)} nombres = {total_records} total")
         
         return SyncResponse(
             success=True,
