@@ -168,7 +168,8 @@ def parse_comision_especial(df: pd.DataFrame) -> List[Dict[str, Any]]:
             
             # Get all relevant columns from same row
             record = {
-                'codigo': str(row.iloc[6]).strip(),  # Column G - CIIU code
+                'codigo': str(row.iloc[6]).strip(),  # Column G - CIIU code (what user searches for)
+                'codigo_mcc': str(row.iloc[3]).strip() if not pd.isna(row.iloc[3]) else None,  # Column D - MCC code (for matching)
                 'tipo': 'codigo',
                 'grupo': str(row.iloc[4]).strip() if not pd.isna(row.iloc[4]) else None,  # Column E
                 'subgrupo': str(row.iloc[5]).strip() if not pd.isna(row.iloc[5]) else None,  # Column F
