@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,9 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
   Platform,
-  FlatList,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
 
 const API_URL = 'https://cotizador-dtg.onrender.com';
 
@@ -36,40 +33,49 @@ export default function Index() {
   const [result, setResult] = useState<SearchResult | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchText.length >= 2) {
-        fetchSuggestions(searchText);
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchText]);
-
-  const fetchSuggestions = async (query: string) => {
+  const fetchSuggestions = useCallback(async (query: string) => {
+    if (query.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    
     try {
       const response = await fetch(
         `${API_URL}/api/autocomplete?q=${encodeURIComponent(query)}`
       );
-      const data = await response.json();
-      setSuggestions(data.suggestions || []);
-      setShowSuggestions(data.suggestions?.length > 0);
+      if (response.ok) {
+        const data = await response.json();
+        setSuggestions(data.suggestions || []);
+        setShowSuggestions((data.suggestions || []).length > 0);
+      }
     } catch (error) {
-      console.error('Autocomplete error:', error);
-      setSuggestions([]);
-      setShowSuggestions(false);
+      console.log('Autocomplete error:', error);
     }
+  }, []);
+
+  const handleTextChange = (text: string) => {
+    setSearchText(text);
+    setResult(null);
+    
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
+    const timer = setTimeout(() => {
+      fetchSuggestions(text);
+    }, 400);
+    
+    setDebounceTimer(timer);
   };
 
   const handleSearch = async (query?: string) => {
     const searchQuery = query || searchText;
     
     if (!searchQuery.trim()) {
-      Alert.alert('Error', 'Por favor ingrese datos');
+      Alert.alert('Error', 'Por favor ingrese un código o nombre');
       return;
     }
 
@@ -83,16 +89,19 @@ export default function Index() {
       );
       
       if (response.status === 404) {
-        Alert.alert('No encontrado', 'Datos no encontrados');
-        setLoading(false);
+        Alert.alert('No encontrado', 'No se encontraron datos para esta búsqueda');
         return;
+      }
+      
+      if (!response.ok) {
+        throw new Error('Error de servidor');
       }
       
       const data = await response.json();
       setResult(data);
     } catch (error) {
-      Alert.alert('Error', 'Error al buscar datos. Por favor intente nuevamente.');
-      console.error('Search error:', error);
+      Alert.alert('Error', 'Error al buscar. Verifique su conexión a internet.');
+      console.log('Search error:', error);
     } finally {
       setLoading(false);
     }
@@ -101,194 +110,216 @@ export default function Index() {
   const selectSuggestion = (suggestion: string) => {
     setSearchText(suggestion);
     setShowSuggestions(false);
+    setSuggestions([]);
     handleSearch(suggestion);
   };
 
-  const renderRateCard = (title: string, debitoValue?: string, creditoValue?: string) => {
-    if (!debitoValue && !creditoValue) return null;
-
-    return (
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        <View style={styles.rateContainer}>
-          {debitoValue && (
-            <View style={[styles.rateBox, styles.debitoBox]}>
-              <Text style={styles.rateLabel}>Débito</Text>
-              <Text style={styles.rateValue}>{debitoValue}</Text>
-            </View>
-          )}
-          {creditoValue && (
-            <View style={[styles.rateBox, styles.creditoBox]}>
-              <Text style={styles.rateLabel}>Crédito</Text>
-              <Text style={styles.rateValue}>{creditoValue}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-    );
+  const clearSearch = () => {
+    setSearchText('');
+    setResult(null);
+    setSuggestions([]);
+    setShowSuggestions(false);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+    <View style={styles.container}>
+      <StatusBar style="light" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Cotizador DTG</Text>
+        <Text style={styles.headerSubtitle}>Consulta de Tasas</Text>
+      </View>
+
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Cotizador DTG</Text>
+        {/* Search Box */}
+        <View style={styles.searchBox}>
+          <Text style={styles.searchTitle}>Buscar Datos</Text>
+          <Text style={styles.searchSubtitle}>
+            Ingrese código CIIU o nombre del giro de negocio
+          </Text>
+
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ej: 4711 o Supermercados"
+              placeholderTextColor="#999"
+              value={searchText}
+              onChangeText={handleTextChange}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+              onSubmitEditing={() => handleSearch()}
+            />
+            {searchText.length > 0 && (
+              <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
+                <Text style={styles.clearButtonText}>✕</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          <View style={styles.searchContainer}>
-            <Text style={styles.title}>Buscar Datos</Text>
-            <Text style={styles.subtitle}>Ingrese código CIIU o nombre del giro de negocio</Text>
-
-            <View style={styles.inputWrapper}>
-              <View style={styles.inputContainer}>
-                <Ionicons name="search" size={24} color="#666" style={styles.searchIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Ingrese Datos"
-                  value={searchText}
-                  onChangeText={(text) => {
-                    setSearchText(text);
-                    setResult(null);
-                  }}
-                  autoCapitalize="none"
-                  returnKeyType="search"
-                  onSubmitEditing={() => handleSearch()}
-                />
-                {searchText.length > 0 && (
-                  <TouchableOpacity onPress={() => {
-                    setSearchText('');
-                    setResult(null);
-                    setSuggestions([]);
-                    setShowSuggestions(false);
-                  }}>
-                    <Ionicons name="close-circle" size={20} color="#666" />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {showSuggestions && suggestions.length > 0 && (
-                <View style={styles.suggestionsContainer}>
-                  {suggestions.slice(0, 10).map((item, index) => (
-                    <TouchableOpacity
-                      key={`${item}-${index}`}
-                      style={styles.suggestionItem}
-                      onPress={() => selectSuggestion(item)}
-                    >
-                      <Ionicons name="business-outline" size={18} color="#666" style={{ marginRight: 8 }} />
-                      <Text style={styles.suggestionText} numberOfLines={2}>{item}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={() => handleSearch()}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Ionicons name="search" size={20} color="#fff" />
-                  <Text style={styles.searchButtonText}>Buscar</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {result && (
-            <View style={styles.resultsContainer}>
-              <View style={styles.resultHeader}>
-                <Ionicons name="checkmark-circle" size={32} color="#4CAF50" />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.resultHeaderText}>
-                    {result.tipo === 'codigo' ? 'Código CIIU' : 'Giro de Negocio'}
+          {/* Suggestions */}
+          {showSuggestions && suggestions.length > 0 && (
+            <View style={styles.suggestionsBox}>
+              {suggestions.slice(0, 8).map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.suggestionItem}
+                  onPress={() => selectSuggestion(item)}
+                >
+                  <Text style={styles.suggestionText} numberOfLines={1}>
+                    {item}
                   </Text>
-                  <Text style={styles.resultValueText}>{result.valor}</Text>
-                </View>
-              </View>
-
-              {result.tipo === 'codigo' && renderRateCard(
-                'Tasa Campaña',
-                result.debito_campana,
-                result.credito_campana
-              )}
-
-              {renderRateCard(
-                'Tasa Dinámica',
-                result.debito_dinamica,
-                result.credito_dinamica
-              )}
-
-              {result.tipo === 'nombre' && renderRateCard(
-                'Tasa Pizarra',
-                result.debito_pizarra,
-                result.credito_pizarra
-              )}
-
-              {(result.grupo || result.subgrupo) && (
-                <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Información Adicional</Text>
-                  {result.grupo && (
-                    <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>Grupo:</Text>
-                      <Text style={styles.infoValue}>{result.grupo}</Text>
-                    </View>
-                  )}
-                  {result.subgrupo && (
-                    <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>Subgrupo:</Text>
-                      <Text style={styles.infoValue}>{result.subgrupo}</Text>
-                    </View>
-                  )}
-                </View>
-              )}
+                </TouchableOpacity>
+              ))}
             </View>
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+          <TouchableOpacity
+            style={[styles.searchButton, loading && styles.searchButtonDisabled]}
+            onPress={() => handleSearch()}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.searchButtonText}>Buscar</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Results */}
+        {result && (
+          <View style={styles.resultsBox}>
+            {/* Result Header */}
+            <View style={styles.resultHeader}>
+              <Text style={styles.resultType}>
+                {result.tipo === 'codigo' ? '📋 Código CIIU' : '🏢 Giro de Negocio'}
+              </Text>
+              <Text style={styles.resultValue}>{result.valor}</Text>
+            </View>
+
+            {/* Tasa Campaña - Solo para códigos */}
+            {result.tipo === 'codigo' && (result.debito_campana || result.credito_campana) && (
+              <View style={styles.rateCard}>
+                <Text style={styles.rateTitle}>Tasa Campaña</Text>
+                <View style={styles.rateRow}>
+                  {result.debito_campana && (
+                    <View style={[styles.rateItem, styles.debitoItem]}>
+                      <Text style={styles.rateLabel}>Débito</Text>
+                      <Text style={styles.rateValue2}>{result.debito_campana}</Text>
+                    </View>
+                  )}
+                  {result.credito_campana && (
+                    <View style={[styles.rateItem, styles.creditoItem]}>
+                      <Text style={styles.rateLabel}>Crédito</Text>
+                      <Text style={styles.rateValue2}>{result.credito_campana}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Tasa Dinámica */}
+            {(result.debito_dinamica || result.credito_dinamica) && (
+              <View style={styles.rateCard}>
+                <Text style={styles.rateTitle}>Tasa Dinámica</Text>
+                <View style={styles.rateRow}>
+                  {result.debito_dinamica && (
+                    <View style={[styles.rateItem, styles.debitoItem]}>
+                      <Text style={styles.rateLabel}>Débito</Text>
+                      <Text style={styles.rateValue2}>{result.debito_dinamica}</Text>
+                    </View>
+                  )}
+                  {result.credito_dinamica && (
+                    <View style={[styles.rateItem, styles.creditoItem]}>
+                      <Text style={styles.rateLabel}>Crédito</Text>
+                      <Text style={styles.rateValue2}>{result.credito_dinamica}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Tasa Pizarra - Solo para nombres */}
+            {result.tipo === 'nombre' && (result.debito_pizarra || result.credito_pizarra) && (
+              <View style={styles.rateCard}>
+                <Text style={styles.rateTitle}>Tasa Pizarra</Text>
+                <View style={styles.rateRow}>
+                  {result.debito_pizarra && (
+                    <View style={[styles.rateItem, styles.debitoItem]}>
+                      <Text style={styles.rateLabel}>Débito</Text>
+                      <Text style={styles.rateValue2}>{result.debito_pizarra}</Text>
+                    </View>
+                  )}
+                  {result.credito_pizarra && (
+                    <View style={[styles.rateItem, styles.creditoItem]}>
+                      <Text style={styles.rateLabel}>Crédito</Text>
+                      <Text style={styles.rateValue2}>{result.credito_pizarra}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Info Adicional */}
+            {(result.grupo || result.subgrupo) && (
+              <View style={styles.infoCard}>
+                <Text style={styles.infoTitle}>Información Adicional</Text>
+                {result.grupo && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Grupo:</Text>
+                    <Text style={styles.infoValue}>{result.grupo}</Text>
+                  </View>
+                )}
+                {result.subgrupo && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Subgrupo:</Text>
+                    <Text style={styles.infoValue}>{result.subgrupo}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f0f2f5',
   },
-  keyboardView: {
-    flex: 1,
+  header: {
+    backgroundColor: '#0066CC',
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 4,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 40,
   },
-  header: {
-    backgroundColor: '#0066CC',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  searchContainer: {
+  searchBox: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
@@ -299,29 +330,24 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  title: {
-    fontSize: 20,
+  searchTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  subtitle: {
-    fontSize: 14,
+  searchSubtitle: {
+    fontSize: 13,
     color: '#666',
-    marginBottom: 20,
-  },
-  inputWrapper: {
     marginBottom: 16,
   },
-  inputContainer: {
+  inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
     paddingHorizontal: 12,
-  },
-  searchIcon: {
-    marginRight: 8,
+    marginBottom: 12,
   },
   input: {
     flex: 1,
@@ -329,17 +355,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-  suggestionsContainer: {
+  clearButton: {
+    padding: 8,
+  },
+  clearButtonText: {
+    fontSize: 18,
+    color: '#999',
+  },
+  suggestionsBox: {
     backgroundColor: '#fff',
     borderRadius: 8,
-    marginTop: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    maxHeight: 300,
+    marginBottom: 12,
+    maxHeight: 200,
   },
   suggestionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
@@ -347,50 +378,45 @@ const styles = StyleSheet.create({
   suggestionText: {
     fontSize: 14,
     color: '#333',
-    flex: 1,
   },
   searchButton: {
     backgroundColor: '#0066CC',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 8,
-    gap: 8,
+    alignItems: 'center',
+  },
+  searchButtonDisabled: {
+    opacity: 0.7,
   },
   searchButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  resultsContainer: {
-    gap: 16,
+  resultsBox: {
+    gap: 12,
   },
   resultHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
     backgroundColor: '#fff',
-    padding: 16,
     borderRadius: 12,
-    gap: 12,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  resultHeaderText: {
+  resultType: {
     fontSize: 14,
-    fontWeight: '600',
     color: '#666',
+    marginBottom: 4,
   },
-  resultValueText: {
-    fontSize: 18,
+  resultValue: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
-    marginTop: 4,
   },
-  card: {
+  rateCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
@@ -400,47 +426,60 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  cardTitle: {
+  rateTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 12,
   },
-  rateContainer: {
+  rateRow: {
     flexDirection: 'row',
     gap: 12,
   },
-  rateBox: {
+  rateItem: {
     flex: 1,
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
-  debitoBox: {
+  debitoItem: {
     backgroundColor: '#E3F2FD',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#0066CC',
   },
-  creditoBox: {
+  creditoItem: {
     backgroundColor: '#E0F7FA',
-    borderWidth: 2,
-    borderColor: '#00BFFF',
+    borderWidth: 1,
+    borderColor: '#00ACC1',
   },
   rateLabel: {
     fontSize: 12,
-    fontWeight: '600',
     color: '#666',
     marginBottom: 4,
   },
-  rateValue: {
+  rateValue2: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
   },
+  infoCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
   infoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
@@ -449,11 +488,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#666',
+    width: 80,
   },
   infoValue: {
     fontSize: 14,
     color: '#333',
     flex: 1,
-    textAlign: 'right',
   },
 });
