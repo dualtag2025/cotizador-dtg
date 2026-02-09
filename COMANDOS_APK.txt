@@ -1,0 +1,57 @@
+╔═══════════════════════════════════════════════════════════╗
+║         🚀 COMANDOS PARA GENERAR APK - COTIZADOR DTG      ║
+╚═══════════════════════════════════════════════════════════╝
+
+📋 COMANDOS RÁPIDOS (Copia y pega):
+
+1️⃣ Instalar EAS CLI:
+   npm install -g eas-cli
+
+2️⃣ Login en Expo:
+   eas login
+   (Usa tu email y contraseña de Expo, o crea cuenta nueva)
+
+3️⃣ Ir a la carpeta del proyecto:
+   cd /app/frontend
+
+4️⃣ Generar APK:
+   eas build --platform android --profile preview
+
+   ⏱️  Tiempo estimado: 10-15 minutos
+   
+   Preguntas que aparecerán:
+   - Create new project? → Y (Yes)
+   - Android package name → (presiona ENTER, ya está configurado)
+   - Generate keystore? → Y (Yes)
+
+5️⃣ Descargar APK:
+   Al finalizar verás un link:
+   https://expo.dev/artifacts/eas/xxxxx.apk
+   
+   Cópialo y ábrelo en tu navegador para descargar
+
+6️⃣ Compartir:
+   Envía el archivo .apk por WhatsApp/Telegram/Email
+
+═══════════════════════════════════════════════════════════
+
+✅ PROYECTO CONFIGURADO:
+   - Nombre: Cotizador DTG
+   - Package: com.dtg.cotizador
+   - Backend: https://mcc-query-tool.preview.emergentagent.com
+   - Versión: 1.0.0
+
+═══════════════════════════════════════════════════════════
+
+📱 PARA INSTALAR EL APK:
+   1. Descarga el .apk en tu Android
+   2. Toca el archivo
+   3. Permite "Fuentes desconocidas" si lo pide
+   4. ¡Listo!
+
+═══════════════════════════════════════════════════════════
+
+❓ Si tienes problemas, revisa: /app/INSTRUCCIONES_APK.md
+   (Guía completa con soluciones)
+
+═══════════════════════════════════════════════════════════
