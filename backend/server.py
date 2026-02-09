@@ -140,13 +140,16 @@ def convert_to_export_url(sheet_url: str) -> str:
     return export_url
 
 def fetch_sheet_data(sheet_url: str) -> pd.DataFrame:
-    """Fetch and parse Google Sheets data"""
+    """Fetch and parse Google Sheets data with proper Spanish character encoding"""
     try:
         export_url = convert_to_export_url(sheet_url)
         response = requests.get(export_url, timeout=30)
         response.raise_for_status()
         
-        # Parse CSV with UTF-8 encoding for Spanish characters
+        # Set proper encoding for Spanish characters
+        response.encoding = 'utf-8'
+        
+        # Parse CSV with UTF-8 encoding
         df = pd.read_csv(io.StringIO(response.text), encoding='utf-8')
         return df
     except Exception as e:
