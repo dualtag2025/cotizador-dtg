@@ -234,9 +234,9 @@ const HomeScreen = () => {
                 result.credito_campana
               )}
 
-              {/* Tasa Dinámica - Solo para nombres */}
-              {result.tipo === 'nombre' && renderRateCard(
-                'Tasa Dinámica',
+              {/* Tasa Dinámica - Para códigos (desde mes 4) y nombres */}
+              {renderRateCard(
+                result.tipo === 'codigo' ? 'Tasa Dinámica (Desde mes 4)' : 'Tasa Dinámica',
                 'Débito',
                 result.debito_dinamica,
                 'Crédito',
