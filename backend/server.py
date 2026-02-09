@@ -395,8 +395,8 @@ async def search_data(query: str):
             subgrupo=codigo_result.get('subgrupo'),
             debito_campana=codigo_result.get('debito_campana'),
             credito_campana=codigo_result.get('credito_campana'),
-            debito_dinamica=None,
-            credito_dinamica=None,
+            debito_dinamica=codigo_result.get('debito_dinamica'),  # Now included from Sheet 2 match
+            credito_dinamica=codigo_result.get('credito_dinamica'),  # Now included from Sheet 2 match
             debito_pizarra=None,
             credito_pizarra=None
         )
