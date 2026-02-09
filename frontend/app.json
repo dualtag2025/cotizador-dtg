@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "com.dtg.cotizador",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0066CC"
@@ -33,11 +33,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "cotizador-dtg"
-      }
     }
   }
 }
