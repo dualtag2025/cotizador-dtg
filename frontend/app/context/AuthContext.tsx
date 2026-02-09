@@ -69,3 +69,6 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// Default export to satisfy expo-router
+export default AuthProvider;
