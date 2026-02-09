@@ -61,3 +61,20 @@ coverage/
 # Supervisor logs
 *.err.log
 *.out.log
+
+# Emergent internal
+.emergent/
+
+# Lock files (optional - can be included)
+# frontend/package-lock.json
+# frontend/yarn.lock
+
+# Test files from development
+*.pyc
+test_*.py
+*_test.py
+additional_test.py
+backend_test.py
+final_test.py
+restore_and_test.py
+test_result.md
