@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from '../src/context/AuthContext';
 import HomeScreen from './screens/HomeScreen';
 import AdminScreen from './screens/AdminScreen';
 
