@@ -84,3 +84,15 @@ test_result.md
 .expo/
 frontend/.expo/
 frontend/.metro-cache/
+
+# Metro bundler cache - NEVER COMMIT
+.metro-cache/
+frontend/.metro-cache/
+
+# Expo local files
+.expo/
+frontend/.expo/
+
+# Build artifacts
+*.apk
+*.aab
