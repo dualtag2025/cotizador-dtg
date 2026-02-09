@@ -7,7 +7,7 @@ Aplicación móvil para consultar tasas de comisión por tipo de negocio (códig
 - ✅ Búsqueda por código CIIU
 - ✅ Búsqueda por nombre de giro de negocio
 - ✅ Autocompletado inteligente
-- ✅ Panel de administración (admin/206141)
+- ✅ Panel de administración 
 - ✅ Sincronización con Google Sheets
 - ✅ Soporte completo español (áéíóúñ)
 - ✅ Funcionamiento offline
@@ -89,13 +89,6 @@ cd frontend
 eas build --platform android --profile preview
 ```
 
-El proceso toma ~10-15 minutos y te dará un link para descargar el APK.
-
-## 🔐 Credenciales Admin
-
-- **Usuario:** admin
-- **Contraseña:** 206141
-
 ## 📊 Google Sheets
 
 La app sincroniza datos de dos Google Sheets:
@@ -113,4 +106,4 @@ Propietario - DTG © 2025
 
 ## 👨‍💻 Autor
 
-Desarrollado con ❤️ para DTG
+Desarrollado con aerf para DTG
