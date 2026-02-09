@@ -60,7 +60,7 @@ api-cotizador-dtg/
 
 ## PASO 5: VERIFICAR QUE FUNCIONA
 
-Visita: https://api.lidercomputeraqp.com.pe/api/health
+Visita: https://api-cotizador-dtg.lidercomputeraqp.com.pe/api/health
 
 Deberías ver:
 ```json
@@ -71,7 +71,7 @@ Deberías ver:
 
 1. Primero, haz login como admin:
 ```bash
-curl -X POST https://api.lidercomputeraqp.com.pe/api/auth/login \
+curl -X POST https://api-cotizador-dtg.lidercomputeraqp.com.pe/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "206141"}'
 ```
@@ -80,7 +80,7 @@ curl -X POST https://api.lidercomputeraqp.com.pe/api/auth/login \
 
 3. Ejecuta la sincronización:
 ```bash
-curl -X POST https://api.lidercomputeraqp.com.pe/api/sync \
+curl -X POST https://api-cotizador-dtg.lidercomputeraqp.com.pe/api/sync \
   -H "Authorization: Bearer TU_TOKEN_AQUI"
 ```
 
