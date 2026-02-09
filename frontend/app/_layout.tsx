@@ -1,11 +1,14 @@
 import { Stack } from 'expo-router';
+import { NavigationIndependentTree } from '@react-navigation/native';
 
 export default function RootLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    />
+    <NavigationIndependentTree>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
+    </NavigationIndependentTree>
   );
 }
