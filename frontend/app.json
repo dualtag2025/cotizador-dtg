@@ -24,6 +24,10 @@
         "android.permission.INTERNET"
       ]
     },
+    "androidStatusBar": {
+      "backgroundColor": "#0066CC",
+      "barStyle": "light-content"
+    },
     "web": {
       "bundler": "metro",
       "output": "static",
