@@ -21,8 +21,10 @@ const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 interface SearchResult {
   tipo: string;
   valor: string;
-  debito_campal?: string;
-  credito_campal?: string;
+  grupo?: string;
+  subgrupo?: string;
+  debito_campana?: string;
+  credito_campana?: string;
   debito_dinamica?: string;
   credito_dinamica?: string;
   debito_pizarra?: string;
