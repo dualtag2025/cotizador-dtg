@@ -3,18 +3,31 @@
 # Cotizador DTG Backend
 # ========================================
 
+## PASO 0: CREAR EL SUBDOMINIO
+
+1. Entra a tu cPanel: https://lidercomputeraqp.com.pe:2083
+2. Busca **"Subdominios"** o **"Subdomains"**
+3. Crear nuevo subdominio:
+   - Subdominio: `api-cotizador-dtg`
+   - Dominio: `lidercomputeraqp.com.pe`
+   - Raíz del documento: `api-cotizador-dtg` (se autocompleta)
+4. Click **"Crear"**
+
+✅ Ahora tienes: `api-cotizador-dtg.lidercomputeraqp.com.pe`
+
+---
+
 ## PASO 1: CREAR APLICACIÓN PYTHON EN CPANEL
 
-1. Entra a tu cPanel en: https://lidercomputeraqp.com.pe:2083
-2. Busca "Setup Python App" o "Python Selector"
-3. Click en "+ Create Application"
-4. Configura:
-   - Python version: 3.11 (o la más reciente disponible)
-   - Application root: cotizador-api
-   - Application URL: api.lidercomputeraqp.com.pe (o un subdominio)
-   - Application startup file: passenger_wsgi.py
-   - Application Entry point: application
-5. Click "Create"
+1. Ve a **"Setup Python App"** o **"Python Selector"**
+2. Click en **"+ Create Application"**
+3. Configura:
+   - **Python version:** 3.11 (o la más reciente)
+   - **Application root:** `api-cotizador-dtg`
+   - **Application URL:** `api-cotizador-dtg.lidercomputeraqp.com.pe`
+   - **Application startup file:** `passenger_wsgi.py`
+   - **Application Entry point:** `application`
+4. Click **"Create"**
 
 ## PASO 2: SUBIR ARCHIVOS
 
