@@ -186,8 +186,6 @@ def parse_comisiones_por_giro(df: pd.DataFrame) -> List[Dict[str, Any]]:
         # Row 7 is index 6 (0-based)
         df = df.iloc[6:].reset_index(drop=True)
         
-        # Column E = index 4 for business names
-        # Columns F,G,H,I = indices 5,6,7,8 for rates
         records = []
         
         for _, row in df.iterrows():
@@ -196,12 +194,14 @@ def parse_comisiones_por_giro(df: pd.DataFrame) -> List[Dict[str, Any]]:
                 continue
                 
             record = {
-                'nombre_giro': str(row.iloc[4]).strip(),  # Column E - Business name
-                'tipo': 'nombre',  # Mark as name-based search
-                'debito_dinamica': str(row.iloc[5]).strip() if not pd.isna(row.iloc[5]) else None,  # Column F
-                'credito_dinamica': str(row.iloc[6]).strip() if not pd.isna(row.iloc[6]) else None,  # Column G
-                'debito_pizarra': str(row.iloc[7]).strip() if not pd.isna(row.iloc[7]) else None,  # Column H
-                'credito_pizarra': str(row.iloc[8]).strip() if not pd.isna(row.iloc[8]) else None,  # Column I
+                'nombre_giro': str(row.iloc[4]).strip(),  # Column E - Business name (también es subgrupo)
+                'tipo': 'nombre',
+                'grupo': str(row.iloc[3]).strip() if not pd.isna(row.iloc[3]) else None,  # Column D - Grupo
+                'subgrupo': str(row.iloc[4]).strip() if not pd.isna(row.iloc[4]) else None,  # Column E - Subgrupo (mismo que nombre)
+                'debito_pizarra': str(row.iloc[5]).strip() if not pd.isna(row.iloc[5]) else None,  # Column F
+                'credito_pizarra': str(row.iloc[6]).strip() if not pd.isna(row.iloc[6]) else None,  # Column G
+                'debito_dinamica': str(row.iloc[7]).strip() if not pd.isna(row.iloc[7]) else None,  # Column H
+                'credito_dinamica': str(row.iloc[8]).strip() if not pd.isna(row.iloc[8]) else None,  # Column I
             }
             records.append(record)
         
