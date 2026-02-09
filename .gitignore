@@ -78,3 +78,9 @@ backend_test.py
 final_test.py
 restore_and_test.py
 test_result.md
+
+# Metro bundler cache
+.metro-cache/
+.expo/
+frontend/.expo/
+frontend/.metro-cache/
