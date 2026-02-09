@@ -182,32 +182,42 @@ def parse_comision_especial(df: pd.DataFrame) -> List[Dict[str, Any]]:
         logger.error(f"Error parsing comision especial: {str(e)}")
         raise ValueError(f"Error al parsear datos: {str(e)}")
 
-def parse_comisiones_por_giro(df: pd.DataFrame) -> List[Dict[str, Any]]:
-    """Parse Comisiones por Giro sheet (column E from row 7 onwards for business names)"""
+def parse_comisiones_por_giro(df: pd.DataFrame) -> tuple:
+    """Parse Comisiones por Giro sheet - returns both name-based and code-based records"""
     try:
         # Row 7 is index 6 (0-based)
         df = df.iloc[6:].reset_index(drop=True)
         
-        records = []
+        records_by_name = []  # For name-based searches
+        records_by_code = {}  # For code matching with Sheet 1 (dict for faster lookup)
         
         for _, row in df.iterrows():
-            # Skip empty rows (check column E for business name)
+            # Skip empty rows
             if pd.isna(row.iloc[4]) or str(row.iloc[4]).strip() == '':
                 continue
-                
-            record = {
-                'nombre_giro': str(row.iloc[4]).strip(),  # Column E - Business name (también es subgrupo)
+            
+            # Record for name-based search
+            record_name = {
+                'nombre_giro': str(row.iloc[4]).strip(),  # Column E
                 'tipo': 'nombre',
-                'grupo': str(row.iloc[3]).strip() if not pd.isna(row.iloc[3]) else None,  # Column D - Grupo
-                'subgrupo': str(row.iloc[4]).strip() if not pd.isna(row.iloc[4]) else None,  # Column E - Subgrupo (mismo que nombre)
+                'grupo': str(row.iloc[3]).strip() if not pd.isna(row.iloc[3]) else None,  # Column D
+                'subgrupo': str(row.iloc[4]).strip() if not pd.isna(row.iloc[4]) else None,  # Column E
                 'debito_pizarra': str(row.iloc[5]).strip() if not pd.isna(row.iloc[5]) else None,  # Column F
                 'credito_pizarra': str(row.iloc[6]).strip() if not pd.isna(row.iloc[6]) else None,  # Column G
                 'debito_dinamica': str(row.iloc[7]).strip() if not pd.isna(row.iloc[7]) else None,  # Column H
                 'credito_dinamica': str(row.iloc[8]).strip() if not pd.isna(row.iloc[8]) else None,  # Column I
             }
-            records.append(record)
+            records_by_name.append(record_name)
+            
+            # Also store by code (Column C) for matching with Sheet 1
+            codigo = str(row.iloc[2]).strip() if not pd.isna(row.iloc[2]) else None
+            if codigo:
+                records_by_code[codigo] = {
+                    'debito_dinamica': str(row.iloc[7]).strip() if not pd.isna(row.iloc[7]) else None,  # Column H
+                    'credito_dinamica': str(row.iloc[8]).strip() if not pd.isna(row.iloc[8]) else None,  # Column I
+                }
         
-        return records
+        return records_by_name, records_by_code
     except Exception as e:
         logger.error(f"Error parsing comisiones por giro: {str(e)}")
         raise ValueError(f"Error al parsear datos: {str(e)}")
