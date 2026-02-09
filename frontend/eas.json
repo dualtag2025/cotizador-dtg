@@ -13,12 +13,14 @@
     },
     "preview": {
       "distribution": "internal",
+      "cache": {
+        "disabled": true
+      },
       "android": {
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_BACKEND_URL": "https://cotizador-dtg.onrender.com",
-        "EXPO_NO_DOCTOR": "1"
+        "EXPO_PUBLIC_BACKEND_URL": "https://cotizador-dtg.onrender.com"
       }
     },
     "production": {
