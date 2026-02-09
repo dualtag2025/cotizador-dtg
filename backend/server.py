@@ -68,8 +68,10 @@ class SheetConfig(BaseModel):
 class SearchResult(BaseModel):
     tipo: str  # 'codigo' or 'nombre'
     valor: str  # The code or business name searched
-    debito_campal: Optional[str] = None
-    credito_campal: Optional[str] = None
+    grupo: Optional[str] = None
+    subgrupo: Optional[str] = None
+    debito_campana: Optional[str] = None
+    credito_campana: Optional[str] = None
     debito_dinamica: Optional[str] = None
     credito_dinamica: Optional[str] = None
     debito_pizarra: Optional[str] = None
