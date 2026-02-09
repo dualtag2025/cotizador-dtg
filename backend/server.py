@@ -321,13 +321,13 @@ async def sync_sheets(token_data: dict = Depends(verify_token)):
         df2 = fetch_sheet_data(config['comisiones_por_giro_url'])
         records_by_name, records_by_code = parse_comisiones_por_giro(df2)
         
-        # Enrich Sheet 1 records with Tasa Dinámica from Sheet 2 (match by code)
+        # Enrich Sheet 1 records with Tasa Dinámica from Sheet 2 (match by MCC code)
         for record in records1:
-            codigo = record['codigo']
-            if codigo in records_by_code:
-                # Add Tasa Dinámica from Sheet 2
-                record['debito_dinamica'] = records_by_code[codigo]['debito_dinamica']
-                record['credito_dinamica'] = records_by_code[codigo]['credito_dinamica']
+            codigo_mcc = record.get('codigo_mcc')  # Get MCC code from column D
+            if codigo_mcc and codigo_mcc in records_by_code:
+                # Add Tasa Dinámica from Sheet 2 using MCC code match
+                record['debito_dinamica'] = records_by_code[codigo_mcc]['debito_dinamica']
+                record['credito_dinamica'] = records_by_code[codigo_mcc]['credito_dinamica']
             else:
                 record['debito_dinamica'] = None
                 record['credito_dinamica'] = None
