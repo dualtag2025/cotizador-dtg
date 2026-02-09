@@ -227,16 +227,16 @@ const HomeScreen = () => {
 
               {/* Tasa Campaña - Solo para códigos */}
               {result.tipo === 'codigo' && renderRateCard(
-                'Tasa Campaña (Primeros 3 meses)',
+                'Tasa Campaña',
                 'Débito',
                 result.debito_campana,
                 'Crédito',
                 result.credito_campana
               )}
 
-              {/* Tasa Dinámica - Para códigos (desde mes 4) y nombres */}
+              {/* Tasa Dinámica - Para códigos y nombres */}
               {renderRateCard(
-                result.tipo === 'codigo' ? 'Tasa Dinámica (Desde mes 4)' : 'Tasa Dinámica',
+                'Tasa Dinámica',
                 'Débito',
                 result.debito_dinamica,
                 'Crédito',
