@@ -33,7 +33,7 @@ export default function Index() {
   const [result, setResult] = useState<SearchResult | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchSuggestions = useCallback(async (query: string) => {
     if (query.length < 2) {
