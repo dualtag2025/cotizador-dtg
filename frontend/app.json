@@ -15,6 +15,7 @@
     "android": {
       "package": "com.dtg.cotizador",
       "versionCode": 4,
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0066CC"
@@ -22,10 +23,6 @@
       "permissions": [
         "android.permission.INTERNET"
       ]
-    },
-    "androidStatusBar": {
-      "backgroundColor": "#0066CC",
-      "barStyle": "light-content"
     },
     "web": {
       "bundler": "metro",
