@@ -15,7 +15,6 @@
     "android": {
       "package": "com.dtg.cotizador",
       "versionCode": 4,
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0066CC"
